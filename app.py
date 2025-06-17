@@ -8,19 +8,29 @@ import tempfile
 import numpy as np
 
 # Your Hugging Face API Token
-HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
+HF_Token = os.getenv("HF_Token")
 
 API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
 
 headers = {
-    "Authorization": f"Bearer {HF_TOKEN}"
+    "Authorization": f"Bearer {HF_Token}"
 }
 
 def query_mistral(question):
     payload = {"inputs": question, "parameters": {"max_length": 256}}
     response = requests.post(API_URL, headers=headers, json=payload)
-    output = response.json()
-    return output[0]["generated_text"]
+    
+    try:
+        output = response.json()
+        # Check for standard output format
+        if isinstance(output, list) and "generated_text" in output[0]:
+            return output[0]["generated_text"]
+        else:
+            # Return error message or full object for debugging
+            return f"[Error from Mistral API]: {output}"
+    except Exception as e:
+        return f"[Exception in query_mistral]: {str(e)}"
+
 
 POLYGON_API_KEY = os.getenv("POLYGON_API_KEY")
 
@@ -306,15 +316,20 @@ with gr.Blocks(theme=theme) as iface:
     submit_btn.click(fn=stock_research, inputs=[symbol, eps, growth, book],
                      outputs=[output_summary, output_info, output_ratios, output_health, output_sector, output_chart])
 
-    def reset_fields():
-        return "", 5.0, 0.1, 500000000, "", "", "", "", "", None
-
-    reset_btn.click(fn=reset_fields, inputs=[], outputs=[symbol, eps, growth, book, output_summary, output_info, output_ratios, output_health, output_sector, output_chart])
 
     def reset_fields():
         return "", 5.0, 0.1, 500000000, "", "", "", "", None
+    
+    reset_btn.click(
+        fn=reset_fields,
+        inputs=[],
+        outputs=[
+            symbol, eps, growth, book,
+            output_summary, output_info,
+            output_ratios, output_sector, output_chart
+        ]
+    )
 
-    reset_btn.click(fn=reset_fields, inputs=[], outputs=[symbol, eps, growth, book, output_summary, output_info, output_ratios, output_sector, output_chart])
 
 
     def reset_fields():
