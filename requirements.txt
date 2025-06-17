@@ -1,5 +1,6 @@
-gradio
-matplotlib
-pandas
+gradio>=4.6.0
+transformers>=4.36.2
+pandas>=2.2.0
+matplotlib>=3.7.1
+requests>=2.31.0
 numpy
-requests
